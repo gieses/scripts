@@ -18,7 +18,8 @@ PROTON = 1.00727646658
 MODS = {"cm":[57.021464, "H3C2NO"],
         "ox":[15.994915 , "O"]}
 
-def digest(sequences, name_col, min_length=6, protease="trypsin"):
+def digest(sequences, name_col, min_length=6, missed_cleavage=2,
+           protease="trypsin"):
     """
     
     Digests a give FASTA sequence collection into peptides. The protease, 
@@ -49,9 +50,10 @@ def digest(sequences, name_col, min_length=6, protease="trypsin"):
     for description, sequence in sequences:
         #get desc and cleavage products
         desc = fasta.parse(description)
-        new_peptides = parser.cleave(sequence, parser.expasy_rules[protease])
-        new_peptides = [i for i in new_peptides if len(i) >= min_length]
-        
+        new_peptides = parser.cleave(sequence, parser.expasy_rules[protease],
+                                     missed_cleavages=missed_cleavage,
+                                     min_length=min_length)
+               
         #store new data
         peptides.extend(new_peptides)
         proteins.extend([desc["id"]]*len(new_peptides))
@@ -76,7 +78,7 @@ def get_mass(peptide, mass_dic={}, fixed={"C":57.021464}):
         #add modification masses
         add = 0
         for fixed_mod in fixed:
-            add = peptide.count(fixed_mod) *fixed[fixed_mod]
+            add = peptide.count(fixed_mod) * fixed[fixed_mod]
         
         #compute pepmass
         pep_mass = mass.fast_mass(peptide)+ add
@@ -178,8 +180,8 @@ target = fasta.read(fasta_file)
 decoys = fasta.read(fasta_file)
 
 #generate peptides
-target_df = digest(target, "Target", min_length=min_length, protease=protease)
-decoy_df = digest(decoys, "Decoy", min_length=min_length, protease=protease)
+target_df = digest(target, "Target", min_length=min_length, protease=protease).head(100)
+decoy_df = digest(decoys, "Decoy", min_length=min_length, protease=protease).head(100)
 df = pd.concat([target_df, decoy_df])
 df = df.reset_index()
 df.to_csv("{}_PeptidesDigest.csv".format(idname))
