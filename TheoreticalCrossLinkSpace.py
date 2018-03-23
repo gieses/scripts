@@ -180,8 +180,8 @@ target = fasta.read(fasta_file)
 decoys = fasta.read(fasta_file)
 
 #generate peptides
-target_df = digest(target, "Target", min_length=min_length, protease=protease).head(100)
-decoy_df = digest(decoys, "Decoy", min_length=min_length, protease=protease).head(100)
+target_df = digest(target, "Target", min_length=min_length, protease=protease)
+decoy_df = digest(decoys, "Decoy", min_length=min_length, protease=protease)
 df = pd.concat([target_df, decoy_df])
 df = df.reset_index()
 df.to_csv("{}_PeptidesDigest.csv".format(idname))
